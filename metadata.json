@@ -1,0 +1,6 @@
+{
+  "name": "FRYGUY Digital Restaurant System",
+  "description": "Interactive demo of a complete web-based digital restaurant ordering and management system for FRYGUY QSR, featuring Customer Web, QR Table Ordering, Counter POS, Kitchen Display System, and Owner Dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
