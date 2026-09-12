@@ -1,203 +1,194 @@
-import React, { useState } from 'react';
-import { useRestaurant } from '../../context/RestaurantContext';
-import { X, Download, Printer, CheckCircle2, QrCode } from 'lucide-react';
+import React from "react";
+import { X, Printer, CheckCircle2, ShieldCheck, Download } from "lucide-react";
 
-export const DigitalInvoiceModal: React.FC = () => {
-  const { invoiceModalOrder, setInvoiceModalOrder, showToast } = useRestaurant();
-  const [isDownloading, setIsDownloading] = useState(false);
-
-  if (!invoiceModalOrder) return null;
-
-  const order = invoiceModalOrder;
-  const cgst = (order.tax / 2).toFixed(2);
-  const sgst = (order.tax / 2).toFixed(2);
-
-  const handleDownloadPDF = () => {
-    setIsDownloading(true);
-    setTimeout(() => {
-      setIsDownloading(false);
-      showToast(
-        'Invoice Downloaded',
-        `PDF ${order.invoiceId}.pdf generated successfully.`,
-        'success'
-      );
-    }, 1000);
+interface DigitalInvoiceModalProps {
+  invoiceData: {
+    brandName: string;
+    brandSlug?: string;
+    logoUrl?: string;
+    invoiceNumber: string;
+    orderNumber: number;
+    source?: string;
+    orderType?: string;
+    table?: string;
+    customer?: string;
+    date: string;
+    items: {
+      name: string;
+      variant?: string;
+      qty: number;
+      price: number;
+      addons?: string[];
+    }[];
+    subtotal: number;
+    discount: number;
+    tax: number;
+    total: number;
+    paymentMethod: string;
+    paymentStatus: string;
+    transactionRef?: string;
   };
+  onClose: () => void;
+}
 
+export function DigitalInvoiceModal({ invoiceData, onClose }: DigitalInvoiceModalProps) {
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div
-      id="modal-digital-invoice-backdrop"
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
-    >
+    <div id="digital-invoice-overlay" className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
       <div
-        id="modal-digital-invoice"
-        className="relative w-full max-w-md bg-white text-neutral-900 rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden my-auto max-h-[95vh] flex flex-col animate-in zoom-in-95 duration-200"
+        id="digital-invoice-modal-card"
+        className="bg-white w-full max-w-md rounded-2xl border border-[#E8E2DE] shadow-2xl overflow-hidden my-auto"
       >
-        {/* Header Bar */}
-        <div className="bg-neutral-900 text-white px-5 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-heading font-extrabold text-lg tracking-tight text-amber-400">
-              FRYGUY
-            </span>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-300">
-              TAX INVOICE
-            </span>
+        {/* Top Action Bar */}
+        <div className="p-3.5 bg-[#171717] text-white flex items-center justify-between text-xs print:hidden">
+          <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[11px]">
+            <CheckCircle2 className="w-4 h-4 text-[#218739]" />
+            Paperless Digital Invoice
           </div>
-          <button
-            onClick={() => setInvoiceModalOrder(null)}
-            className="text-neutral-400 hover:text-white transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              id="print-invoice-btn"
+              onClick={handlePrint}
+              className="px-2.5 py-1 rounded bg-[#3A3A3A] hover:bg-[#4A4A4A] text-white font-semibold flex items-center gap-1 cursor-pointer"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print / PDF</span>
+            </button>
+            <button
+              id="close-invoice-btn"
+              onClick={onClose}
+              className="p-1 text-[#A3A3A3] hover:text-white rounded hover:bg-[#3A3A3A]"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Invoice Printable Body */}
-        <div className="p-6 overflow-y-auto font-body text-xs space-y-4">
-          {/* Restaurant Details */}
-          <div className="text-center pb-3 border-b border-dashed border-neutral-300">
-            <h2 className="text-lg font-black tracking-tight text-neutral-950 font-heading">
-              FRYGUY CRISPY FOODS LLP
-            </h2>
-            <p className="text-neutral-600 text-[11px] mt-0.5">
-              Beside Westside, FCI Colony Park Rd, Abhyudaya Nagar, Chintalkunta, Hyderabad 500074
+        {/* Invoice Printable Area */}
+        <div className="p-6 sm:p-7 space-y-5 bg-white text-[#171717]" id="printable-invoice-content">
+          {/* Header */}
+          <div className="text-center pb-4 border-b border-dashed border-[#E8E2DE]">
+            <div className="flex justify-center mb-2">
+              <img
+                src={invoiceData.brandSlug === "fryguy" || !invoiceData.brandSlug ? "/favicon.svg" : (invoiceData.logoUrl || "/favicon.svg")}
+                alt="Brand Logo"
+                className="w-12 h-12 object-contain rounded-xl shadow-xs"
+              />
+            </div>
+            <div className="inline-block font-['Archivo_Black'] text-2xl tracking-tight text-[#ED1C24] uppercase">
+              {invoiceData.brandName}
+            </div>
+            <p className="text-[11px] text-[#737373] mt-0.5 uppercase tracking-wider font-semibold">
+              The Destination Food Hub • Central Location
             </p>
-            <p className="text-neutral-500 text-[10px] mt-0.5">
-              GSTIN: 36AABCF9182C1Z4 • FSSAI Lic: 11223344556677
-            </p>
-          </div>
-
-          {/* Invoice Metadata */}
-          <div className="grid grid-cols-2 gap-2 bg-neutral-50 p-3 rounded-xl border border-neutral-200 text-[11px]">
-            <div>
-              <span className="text-neutral-500 block">Invoice No:</span>
-              <span className="font-bold text-neutral-900 font-mono">{order.invoiceId}</span>
-            </div>
-            <div>
-              <span className="text-neutral-500 block">Order ID:</span>
-              <span className="font-bold text-neutral-900">#{order.orderNumber}</span>
-            </div>
-            <div>
-              <span className="text-neutral-500 block">Date & Time:</span>
-              <span className="font-medium text-neutral-800">{order.createdAt}</span>
-            </div>
-            <div>
-              <span className="text-neutral-500 block">Order Mode:</span>
-              <span className="font-bold text-neutral-900 uppercase">
-                {order.type === 'dine-in' ? `Table ${order.tableNumber || 12}` : 'Takeaway'}
-              </span>
-            </div>
-            <div>
-              <span className="text-neutral-500 block">Customer Mobile:</span>
-              <span className="font-medium text-neutral-800">{order.customerMobile}</span>
-            </div>
-            <div>
-              <span className="text-neutral-500 block">Payment:</span>
-              <span className="font-bold text-emerald-700 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" />
-                {order.paymentMethod} (PAID)
-              </span>
+            <div className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-[#FFE8E9] text-[#B90F18] font-bold text-[10px] tracking-wider uppercase">
+              Paid • {invoiceData.paymentMethod}
             </div>
           </div>
 
-          {/* Itemized Table */}
-          <div className="space-y-2">
-            <div className="grid grid-cols-12 text-[10px] font-bold text-neutral-500 uppercase pb-1 border-b border-neutral-300">
-              <span className="col-span-6">Item</span>
+          {/* Meta Info */}
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span className="text-[#737373] block text-[10px] uppercase font-bold">Invoice Number</span>
+              <span className="font-mono font-bold text-[#171717]">{invoiceData.invoiceNumber}</span>
+            </div>
+            <div className="text-right">
+              <span className="text-[#737373] block text-[10px] uppercase font-bold">Order Number</span>
+              <span className="font-['Archivo_Black'] text-[#ED1C24]">#{invoiceData.orderNumber}</span>
+            </div>
+            <div>
+              <span className="text-[#737373] block text-[10px] uppercase font-bold">Location / Table</span>
+              <span className="font-semibold text-[#171717]">{invoiceData.table || "Table"}</span>
+            </div>
+            <div className="text-right">
+              <span className="text-[#737373] block text-[10px] uppercase font-bold">Date & Time</span>
+              <span className="text-[#3A3A3A]">
+                {new Date(invoiceData.date).toLocaleDateString()} {new Date(invoiceData.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+            {invoiceData.customer && (
+              <div className="col-span-2 pt-1">
+                <span className="text-[#737373] block text-[10px] uppercase font-bold">Customer</span>
+                <span className="font-medium text-[#171717]">{invoiceData.customer}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Items Table */}
+          <div className="border-t border-b border-[#E8E2DE] py-3">
+            <div className="text-[11px] font-bold text-[#737373] uppercase grid grid-cols-12 pb-1.5 border-b border-[#F2ECE8]">
+              <span className="col-span-7">Item</span>
               <span className="col-span-2 text-center">Qty</span>
-              <span className="col-span-2 text-right">Rate</span>
-              <span className="col-span-2 text-right">Amt</span>
+              <span className="col-span-3 text-right">Amount</span>
             </div>
 
-            <div className="space-y-2">
-              {order.items.map((item, idx) => (
-                <div key={idx} className="grid grid-cols-12 text-[11px] items-start">
-                  <div className="col-span-6 pr-1">
-                    <span className="font-semibold text-neutral-900">{item.name}</span>
-                    {item.customizations && item.customizations.length > 0 && (
-                      <div className="text-[10px] text-neutral-500 mt-0.5">
-                        {item.customizations.join(', ')}
-                      </div>
+            <div className="space-y-2.5 pt-2">
+              {invoiceData.items.map((it, idx) => (
+                <div key={idx} className="text-xs grid grid-cols-12 items-start">
+                  <div className="col-span-7 pr-1">
+                    <div className="font-semibold text-[#171717] leading-snug">{it.name}</div>
+                    {it.variant && (
+                      <div className="text-[10px] text-[#737373]">{it.variant}</div>
                     )}
-                    {item.addOns && item.addOns.length > 0 && (
-                      <div className="text-[10px] text-amber-700 mt-0.5">
-                        {item.addOns.join(', ')}
+                    {it.addons && it.addons.length > 0 && (
+                      <div className="text-[10px] text-[#B90F18] font-medium">
+                        + {it.addons.join(", ")}
                       </div>
                     )}
                   </div>
-                  <span className="col-span-2 text-center font-mono">{item.quantity}</span>
-                  <span className="col-span-2 text-right text-neutral-600 font-mono">
-                    ₹{item.unitPrice}
-                  </span>
-                  <span className="col-span-2 text-right font-bold text-neutral-900 font-mono">
-                    ₹{item.subtotal}
-                  </span>
+                  <div className="col-span-2 text-center font-bold text-[#3A3A3A]">
+                    {it.qty}
+                  </div>
+                  <div className="col-span-3 text-right font-['Archivo_Black'] text-[#171717]">
+                    ₹{it.price * it.qty}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Totals & Tax Calculation */}
-          <div className="pt-3 border-t border-dashed border-neutral-300 space-y-1 text-[11px]">
-            <div className="flex justify-between text-neutral-600">
-              <span>Item Subtotal:</span>
-              <span className="font-mono">₹{order.subtotal.toFixed(2)}</span>
+          {/* Pricing Totals */}
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between text-[#737373]">
+              <span>Subtotal</span>
+              <span className="font-medium">₹{invoiceData.subtotal}</span>
             </div>
-            {order.discount > 0 && (
-              <div className="flex justify-between text-emerald-600 font-medium">
-                <span>Discount ({order.couponCode || 'Promo'}):</span>
-                <span className="font-mono">-₹{order.discount.toFixed(2)}</span>
+            {invoiceData.discount > 0 && (
+              <div className="flex justify-between text-[#218739] font-semibold">
+                <span>Promotional Discount</span>
+                <span>-₹{invoiceData.discount}</span>
               </div>
             )}
-            <div className="flex justify-between text-neutral-500 text-[10px]">
-              <span>CGST (2.5%):</span>
-              <span className="font-mono">₹{cgst}</span>
-            </div>
-            <div className="flex justify-between text-neutral-500 text-[10px]">
-              <span>SGST (2.5%):</span>
-              <span className="font-mono">₹{sgst}</span>
-            </div>
-            <div className="flex justify-between text-sm font-black text-neutral-950 pt-2 border-t border-neutral-300">
-              <span>Net Payable Amount:</span>
-              <span className="font-mono text-base font-black">₹{order.total.toFixed(2)}</span>
+            <div className="flex justify-between text-base font-['Archivo_Black'] text-[#171717] pt-2 border-t border-[#E8E2DE]">
+              <span>Total Paid</span>
+              <span className="text-[#ED1C24]">₹{invoiceData.total}</span>
             </div>
           </div>
 
-          {/* Digital Signature & QR Verification */}
-          <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 flex items-center justify-between gap-3 text-[10px] text-neutral-500">
-            <div>
-              <p className="font-bold text-neutral-800">Digital Tax Compliance Validated</p>
-              <p className="font-mono text-[9px] mt-0.5">Txn Ref: {order.transactionId}</p>
-              <p className="mt-0.5">This is a computer-generated tax invoice.</p>
-            </div>
-            <div className="w-12 h-12 bg-white p-1 rounded border border-neutral-300 flex items-center justify-center shrink-0">
-              <QrCode className="w-10 h-10 text-neutral-900" />
-            </div>
+          {/* Footer Notes */}
+          <div className="text-center pt-3 border-t border-dashed border-[#E8E2DE] text-[10px] text-[#737373] space-y-1">
+            <p className="flex items-center justify-center gap-1 font-semibold text-[#171717]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#218739]" />
+              Digital Record Verified • Transaction Ref: {invoiceData.transactionRef || "TXN-VERIFIED"}
+            </p>
+            <p>100% Paperless Food Destination Platform</p>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="p-4 bg-neutral-100 border-t border-neutral-200 flex items-center justify-end gap-2">
+        {/* Bottom Close Button */}
+        <div className="p-3 bg-[#FFF9F5] border-t border-[#E8E2DE] text-center print:hidden">
           <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 font-semibold text-xs transition-colors cursor-pointer"
+            id="done-viewing-invoice-btn"
+            onClick={onClose}
+            className="w-full py-2 bg-[#171717] text-white rounded-xl text-xs font-['Archivo_Black'] hover:bg-[#3A3A3A] transition-colors"
           >
-            <Printer className="w-3.5 h-3.5" />
-            <span>Print</span>
-          </button>
-          <button
-            onClick={handleDownloadPDF}
-            disabled={isDownloading}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer disabled:opacity-50"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>{isDownloading ? 'Generating PDF...' : 'Download PDF'}</span>
+            CLOSE INVOICE
           </button>
         </div>
       </div>
     </div>
   );
-};
+}

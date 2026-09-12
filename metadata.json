@@ -1,6 +1,6 @@
 {
-  "name": "FRYGUY Digital Restaurant System",
-  "description": "Interactive demo of a complete web-based digital restaurant ordering and management system for FRYGUY QSR, featuring Customer Web, QR Table Ordering, Counter POS, Kitchen Display System, and Owner Dashboard.",
+  "name": "FRYGUY Multi-Brand Food Platform",
+  "description": "Multi-brand digital ordering and restaurant operations platform for a shared food destination with table QR, brand menus, kitchen routing, counter POS, and central administration.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
